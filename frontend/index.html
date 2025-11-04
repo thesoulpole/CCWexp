@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello API - Frontend</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .response-box {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .response-text {
+            color: #333;
+            font-size: 1.2em;
+            font-weight: 500;
+            line-height: 1.6;
+        }
+
+        .error {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+        }
+
+        .success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+            color: white;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .api-status {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .api-status.online {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .api-status.offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👋 Hello API</h1>
+        <p class="subtitle">Powered by FastAPI & Claude Flow</p>
+
+        <div id="apiStatus" class="api-status">
+            Checking API status...
+        </div>
+
+        <div class="input-group">
+            <label for="nameInput">Enter your name (optional)</label>
+            <input
+                type="text"
+                id="nameInput"
+                placeholder="John Doe"
+                autocomplete="name"
+            >
+        </div>
+
+        <button id="helloButton" onclick="sayHello()">
+            Say Hello! 🚀
+        </button>
+
+        <div id="responseBox" style="display: none;" class="response-box">
+            <div id="responseText" class="response-text"></div>
+        </div>
+
+        <div class="footer">
+            Built with ❤️ using FastAPI and Claude Flow Swarm
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+
+        // Check API health on load
+        async function checkAPIHealth() {
+            const statusEl = document.getElementById('apiStatus');
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    statusEl.textContent = '✅ API is online and ready';
+                    statusEl.className = 'api-status online';
+                } else {
+                    throw new Error('API returned error');
+                }
+            } catch (error) {
+                statusEl.textContent = '❌ API is offline - Please start the backend';
+                statusEl.className = 'api-status offline';
+            }
+        }
+
+        // Say hello function
+        async function sayHello() {
+            const nameInput = document.getElementById('nameInput');
+            const responseBox = document.getElementById('responseBox');
+            const responseText = document.getElementById('responseText');
+            const button = document.getElementById('helloButton');
+
+            // Disable button and show loader
+            button.disabled = true;
+            responseBox.style.display = 'flex';
+            responseBox.className = 'response-box';
+            responseText.innerHTML = '<div class="loader"></div>';
+
+            try {
+                const name = nameInput.value.trim();
+                const url = name
+                    ? `${API_BASE_URL}/api/hello?name=${encodeURIComponent(name)}`
+                    : `${API_BASE_URL}/api/hello`;
+
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // Show success response
+                responseBox.className = 'response-box success';
+                responseText.textContent = data.message;
+
+            } catch (error) {
+                console.error('Error:', error);
+                responseBox.className = 'response-box error';
+                responseText.textContent = '❌ Failed to connect to the API. Please make sure the backend is running on port 8000.';
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('nameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sayHello();
+            }
+        });
+
+        // Check API health on load
+        checkAPIHealth();
+
+        // Recheck health every 30 seconds
+        setInterval(checkAPIHealth, 30000);
+    </script>
+</body>
+</html>
